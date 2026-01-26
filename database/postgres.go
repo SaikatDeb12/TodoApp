@@ -3,12 +3,14 @@ package database
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/Saikatdeb12/TodoApp/utils"
 )
 
 var DB *sql.DB
 
 func Connect(){
-	connStr := "postgres://local:local@localhost:5432/todo_db?sslmode=disable"
+	connStr := utils.GoDotEnvVariable("POSTGRESQL_URL")
 
 	var err error
 	DB, err = sql.Open("postgres", connStr)
