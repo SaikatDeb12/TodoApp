@@ -3,14 +3,26 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/Saikatdeb12/TodoApp/utils"
 )
 
 var DB *sql.DB
+func GoDotEnvVariable(key string) string{
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	return os.Getenv(key)
+}
 
 func Connect(){
-	connStr := utils.GoDotEnvVariable("POSTGRESQL_URL")
+	connStr := GoDotEnvVariable("POSTGRESQL_URL")
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if(err != nil){

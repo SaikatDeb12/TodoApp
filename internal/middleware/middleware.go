@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Saikatdeb12/TodoApp/database"
+	"github.com/Saikatdeb12/TodoApp/internal/database"
 	"github.com/google/uuid"
 )
 
 const UserIDkey string = "user_id"
+
 func Auth(next http.Handler) http.Handler{
 	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request){
 		token := r.Header.Get("Authorization")

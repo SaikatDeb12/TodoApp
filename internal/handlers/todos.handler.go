@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Saikatdeb12/TodoApp/database"
+	"github.com/Saikatdeb12/TodoApp/internal/database"
 	"github.com/Saikatdeb12/TodoApp/internal/models"
 	"github.com/Saikatdeb12/TodoApp/internal/utils"
 	"github.com/go-chi/chi/v5"

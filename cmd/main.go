@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Saikatdeb12/TodoApp/database"
+	"github.com/Saikatdeb12/TodoApp/internal/database"
 	"github.com/Saikatdeb12/TodoApp/internal/routes"
 )
 

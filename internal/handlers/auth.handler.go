@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Saikatdeb12/TodoApp/database"
+	"github.com/Saikatdeb12/TodoApp/internal/database"
 	"github.com/Saikatdeb12/TodoApp/internal/models"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -23,6 +23,7 @@ type LoginRequest struct{
 	Password string `json:"password"`
 }
 
+// dc152542-bba3-4ea8-9040-79a384596c00
 
 func Register(w http.ResponseWriter, r *http.Request){
 	var req RegisterRequest
@@ -98,4 +99,34 @@ func Login(w http.ResponseWriter, r *http.Request){
 	})
 }
 
+func Logout(w http.ResponseWriter, r *http.Request){
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
 
+	sessionID, err := uuid.Parse(token)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return 
+	}
+
+	query := `DELETE FROM sessions WHERE id=$1`
+	res, err := database.DB.Exec(query, sessionID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected==0 {
+		http.Error(w, "Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string] string {
+		"msg" : "Logged out successfully",
+	})
+
+}
