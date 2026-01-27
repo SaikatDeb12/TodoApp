@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"github.com/Saikatdeb12/TodoApp/database"
 	"github.com/Saikatdeb12/TodoApp/internal/models"
 	"github.com/Saikatdeb12/TodoApp/internal/utils"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 type CreateTodoRequest struct {
@@ -123,5 +126,46 @@ func GetTodos(w http.ResponseWriter, r *http.Request){
 		todos=append(todos, t)
 	}
 	json.NewEncoder(w).Encode(todos)
+}
+
+func GetTodoByID (w http.ResponseWriter, r *http.Request){
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	todoID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Invalid todo id", http.StatusBadRequest)
+		return
+	}
+
+	query := `
+		SELECT id, title, body, created_at, complete, valid_till
+		FROM todos
+		WHERE id=$1 AND user_id=$2
+	`
+
+	var todo models.Todo
+
+	err = database.DB.QueryRow(query, todoID, userID).Scan(
+		&todo.TodoID,
+		&todo.Title,
+		&todo.Body,
+		&todo.CreatedAt,
+		&todo.Complete,
+		&todo.ValidTill,
+	)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "Todo not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(todo)
 }
 
