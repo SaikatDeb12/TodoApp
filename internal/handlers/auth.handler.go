@@ -23,7 +23,8 @@ type LoginRequest struct{
 	Password string `json:"password"`
 }
 
-// dc152542-bba3-4ea8-9040-79a384596c00
+// 2c25da03-5d0e-4099-b5f8-802dbeb44538
+
 
 func Register(w http.ResponseWriter, r *http.Request){
 	var req RegisterRequest

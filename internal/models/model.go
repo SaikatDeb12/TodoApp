@@ -14,14 +14,15 @@ type User struct {
 	Todos    []Todo
 }
 
+
 type Todo struct {
 	TodoID    uuid.UUID `json:"id" db:"id"`
 	UserID    uuid.UUID `json:"-" db:"user_id"`
 	Title     string    `json:"title" db:"title"`
 	Body      string    `json:"body" db:"body"`
 	CreatedAt time.Time `json:"createdAt" db:"created_at"`
-	Complete  bool      `json:"complete" db:"complete"`
 	ValidTill time.Time `json:"validTill" db:"valid_till"`
+	Complete  bool      `json:"complete" db:"complete"`
 }
 
 type Session struct {
@@ -30,3 +31,6 @@ type Session struct {
 	CreatedAt time.Time `db:"created_at"`
 	ExpiresAt time.Time `db:"expires_at"`
 }
+
+// run the container and run commands:
+// docker exec -it 2b9b7857fb42 psql -U todo_user -d todo_db
