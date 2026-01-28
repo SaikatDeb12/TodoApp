@@ -233,20 +233,67 @@ func CompletedTodos(w http.ResponseWriter, r *http.Request){
 	}
 
 	query := `
-		SELECT * FROM todos
-		WHERE complete=true
+		SELECT id, title, body, created_at, complete, valid_till
+		FROM todos
+		WHERE user_id=$1 and complete=true
+		ORDER BY created_at DESC
 	`
 
-	res, err := database.DB.Exec(query)
+	rows, err := database.DB.Query(query, userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return 
 	}
 
+	defer rows.Close()
 
+
+	todos := []models.Todo{}
+	for rows.Next(){
+		var todo models.Todo
+		if err := rows.Scan(&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.ValidTill); err!=nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		todos=append(todos, todo)
+	}
+	
+	json.NewEncoder(w).Encode(todos)
 }
-
 func InCompleteTodos(w http.ResponseWriter, r *http.Request){
+	userId, err := utils.GetUserID(r.Context())
+	if err != nil {
+		http.Error(w, "Invalid user", http.StatusUnauthorized)
+		return 
+	}
+
+	query := `
+		SELECT id, title, body, created_at, complete, valid_till
+		FROM todos
+		WHERE user_id=$1 and complete=false
+		ORDER BY created_at DESC
+	`
+
+	rows, err := database.DB.Query(query, userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return 
+	}
+
+	defer rows.Close()
+
+
+	todos := []models.Todo{}
+	for rows.Next(){
+		var todo models.Todo
+		if err := rows.Scan(&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.ValidTill); err!=nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		todos=append(todos, todo)
+	}
+	
+	json.NewEncoder(w).Encode(todos)
 
 }
 

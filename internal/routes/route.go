@@ -15,6 +15,8 @@ func SetupRouter() *chi.Mux{
 		r.Use(middlewares.Auth)
 		r.Get("/todos", handlers.GetTodos)
 		r.Get("/todos/{id}", handlers.GetTodoByID)
+		r.Get("/todos", handlers.CompletedTodos)
+		r.Get("/todos", handlers.InCompleteTodos)
 		r.Post("/todos", handlers.CreateTodo)
 		r.Put("/todos/{id}", handlers.UpdateTodoByID)
 		r.Delete("/todos/{id}", handlers.DeleteTodoByID)
