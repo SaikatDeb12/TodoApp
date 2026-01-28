@@ -33,4 +33,5 @@ type Session struct {
 }
 
 // run the container and run commands:
-// docker exec -it 2b9b7857fb42 psql -U todo_user -d todo_db
+// docker exec -it <container> psql -U <username> -d <db-name>
+// docker exec -it todo-postgres psql -U todo_user -d todo_db

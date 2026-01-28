@@ -78,7 +78,7 @@ func GetTodos(w http.ResponseWriter, r *http.Request){
 	args := []interface{}{userId}
 	argID := 2
 	if c:= r.URL.Query().Get("complete"); c!=""{
-		query+=" AND complet=$" + itoa(argID)
+		query+=" AND complete=$" + itoa(argID)
 		args=append(args, c=="true")
 		argID++
 	}
@@ -169,3 +169,36 @@ func GetTodoByID (w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(todo)
 }
 
+type UpdateTodoRequest struct{
+	Title *string `json:"title"`
+	Body *string `json:"body"`
+	Complete *bool `json:"complete"`
+	ValidTill *time.Time `json:"valid_till"`
+}
+
+func DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	userID, _ := utils.GetUserID(r.Context())
+
+	todoID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Invalid todo id", http.StatusBadRequest)
+		return
+	}
+
+	query := `DELETE FROM todos WHERE id=$1 AND user_id=$2`
+
+	res, err := database.DB.Exec(query, todoID, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	aff, _ := res.RowsAffected()
+	if aff == 0 {
+		http.Error(w, "Todo not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"msg": "Todo deleted"})
+}
