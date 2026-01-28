@@ -176,6 +176,55 @@ type UpdateTodoRequest struct{
 	ValidTill *time.Time `json:"valid_till"`
 }
 
+func UpdateTodo(w http.ResponseWriter, r *http.Request){
+	userId, err := utils.GetUserID(r.Context())
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusUnauthorized)
+		return
+	}
+
+	todoId, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err !=nil {
+		http.Error(w, "Invalid todo id", http.StatusBadRequest)
+		return
+	}
+
+	var req UpdateTodoRequest
+	if err:= json.NewDecoder(r.Body).Decode(&req); err!=nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	query := `
+		UPDATE todos
+		SET
+			title=coalesce($1, title),
+			body=coalesce($2, body),
+			complete=coalesce($3, complete),
+			valid_till=coalesce($4, valid_till),
+		WHERE id=$5 AND user_id=$6
+	`
+
+	res, err := database.DB.Exec(query, req.Title, req.Body, req.Complete, req.ValidTill, todoId, userId)
+	if err!= nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//again to check the number of affect rows
+	aff, _ := res.RowsAffected()
+	if aff == 0{
+		http.Error(w, "Todo not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string] string {
+		"msg": "Todo updated successfully",
+	})
+
+}
+
 func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	userID, _ := utils.GetUserID(r.Context())
 
