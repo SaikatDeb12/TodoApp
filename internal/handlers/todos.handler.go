@@ -306,11 +306,16 @@ func UpcomingTodosByDate(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	days,err := strconv.Atoi(r.URL.Query().Get("days"))
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return;
+	dayParam:=r.URL.Query().Get("days")
+	var days int
+	if(dayParam==""){
+		days=0
+	} else{
+		days, err = strconv.Atoi(r.URL.Query().Get("days"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return;
+		}
 	}
 
 	query := `
@@ -347,5 +352,6 @@ func UpcomingTodosByDate(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(todos)
 }
+
 
 

@@ -7,7 +7,6 @@
     <list default="true" id="a865cc98-20d3-41e2-9ef5-47dd39a382f8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/handlers/todos.handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/handlers/todos.handler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/routes/route.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/routes/route.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
