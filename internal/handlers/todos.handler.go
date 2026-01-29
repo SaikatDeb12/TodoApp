@@ -3,8 +3,8 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Saikatdeb12/TodoApp/internal/database"
@@ -18,10 +18,6 @@ type CreateTodoRequest struct {
 	Title string `json:"title"`
 	Body string `json:"body"`
 	ValidTill time.Time `json:"validTill"`
-}
-
-func itoa(i int) string {
-	return fmt.Sprintf("%d", i)
 }
 
 func CreateTodo(w http.ResponseWriter, r *http.Request){
@@ -170,7 +166,7 @@ func UpdateTodoByID(w http.ResponseWriter, r *http.Request){
 			title=coalesce($1, title),
 			body=coalesce($2, body),
 			complete=coalesce($3, complete),
-			valid_till=coalesce($4, valid_till),
+			valid_till=coalesce($4, valid_till)
 		WHERE id=$5 AND user_id=$6
 	`
 
@@ -251,7 +247,7 @@ func CompletedTodos(w http.ResponseWriter, r *http.Request){
 	todos := []models.Todo{}
 	for rows.Next(){
 		var todo models.Todo
-		if err := rows.Scan(&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.ValidTill); err!=nil {
+		if err := rows.Scan(&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.Complete, &todo.ValidTill); err!=nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -282,11 +278,10 @@ func InCompleteTodos(w http.ResponseWriter, r *http.Request){
 
 	defer rows.Close()
 
-
 	todos := []models.Todo{}
 	for rows.Next(){
 		var todo models.Todo
-		if err := rows.Scan(&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.ValidTill); err!=nil {
+		if err := rows.Scan(&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.Complete, &todo.ValidTill); err!=nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -297,12 +292,60 @@ func InCompleteTodos(w http.ResponseWriter, r *http.Request){
 
 }
 
-func AllUpcomingTodos(w http.ResponseWriter, r *http.Request){
-
+type UpcomingTodosRequest struct{
+	Title *string `json:"title"`
+	Body *string `json:"body"`
+	Complete *bool `json:"complete"`
+	ValidTill *time.Time `json:"valid_till"`
 }
 
 func UpcomingTodosByDate(w http.ResponseWriter, r *http.Request){
+	userId, err := utils.GetUserID(r.Context())
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusUnauthorized)
+		return
+	}
 
+	days,err := strconv.Atoi(r.URL.Query().Get("days"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return;
+	}
+
+	query := `
+		SELECT id, title, body, created_at, complete, valid_till
+		FROM todos
+		WHERE user_id = $1
+		  AND complete = false
+		  AND valid_till IS NOT NULL
+		  AND valid_till BETWEEN CURRENT_DATE
+		  AND CURRENT_DATE + ($2 || ' days')::INTERVAL
+		ORDER BY valid_till;
+	`
+	rows, err := database.DB.Query(query, userId, days)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	defer rows.Close()
+
+	var todos []models.Todo
+	for rows.Next(){
+		var todo models.Todo
+		if err := rows.Scan(
+			&todo.TodoID, &todo.Title, &todo.Body, &todo.CreatedAt, &todo.Complete, &todo.ValidTill,
+		); err != nil {
+			http.Error(w, "No todos found", http.StatusNotFound)
+			return
+		}
+
+		todos = append(todos, todo)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(todos)
 }
 
 
